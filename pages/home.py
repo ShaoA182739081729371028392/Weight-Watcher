@@ -1,4 +1,9 @@
 import streamlit as st
+
+import sys
+sys.path.append('..')
+icon_path = './assets/logo.png'
+
 logo_path = './assets/logo.png'
 def render():
     with open('./assets/style.css') as f:
@@ -8,7 +13,7 @@ def render():
     learn_more = st.button('Learn More!')
     try_it = st.button('Try it Out!')
     if learn_more:
-        return 'details'
+        return 'Learn More'
     elif try_it:
-        return 'login'
-    return 'home'
+        return 'Login'
+    return 'Home'

@@ -22,8 +22,7 @@ def set_png_as_page_bg(png_file):
     
     st.markdown(page_bg_img, unsafe_allow_html=True)
     return
-
-
+    
 import pages.home
 import pages.login
 import pages.details
@@ -32,9 +31,10 @@ icon_path = './assets/logo.png'
 MENU = {
     'Home': pages.home, # Simply a Home page, with project details
     'Login': pages.login, # Sophisticated part.
-    'Learn More!': pages.details
+    'Learn More': pages.details
 }
 from streamlit.hashing import _CodeHasher
+
 try:
     # Before Streamlit 0.65
     from streamlit.ReportThread import get_report_ctx
@@ -46,10 +46,14 @@ except ModuleNotFoundError:
 def main():
     state = _get_state()
     st.beta_set_page_config(page_title = "Weight Watcher", page_icon = icon_path)
+    
     # Render the Home Page
     cur_page = state.__getattr__('cur_page')
-    cur_page = 'home' if cur_page is None else cur_page
-    cur_page = MENU[cur_page].render()
+    cur_page = 'Home' if cur_page is None else cur_page
+    if cur_page == 'Login':
+        cur_page = MENU[cur_page].render(state)
+    else:
+        cur_page = MENU[cur_page].render()
     set_png_as_page_bg(path_to_background)
     state.__setitem__('cur_page', cur_page)
     state.sync()
