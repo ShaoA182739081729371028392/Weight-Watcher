@@ -1,0 +1,16 @@
+body {
+    background-color: #eee;
+}
+
+.fullScreenFrame > div {
+    display: flex;
+    justify-self: center;
+    justify-content: center;
+}
+.stButton {
+    justify-self: center;
+    justify-content: center;
+    position: relative;
+    padding-left: 300px;
+    padding-top:25px
+}
