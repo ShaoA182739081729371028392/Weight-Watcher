@@ -16,6 +16,7 @@ import PIL.Image as Image
 import sys
 sys.path.append('..')
 from back_end.profile import Profile
+from deep_learning import calorie_counter
 icon_path = './assets/logo.png'
 st.set_option('deprecation.showfileUploaderEncoding', False)
 sample_images = 'https://github.com/ShaoA182739081729371028392/Weight-Watcher/tree/main/sample%20images'
@@ -24,14 +25,29 @@ MENU = [
     'Login',
     'Learn More'
 ]
+def convert_to_dict(dictionary):
+    for string in list(dictionary.keys()):
+        if type(string) == type('---'):
+            dictionary[eval(string)] = dictionary[string]
+            del dictionary[string]
+def convert_to_string(dictionary):
+    # MongoDB can only handle strings, so convert every entry
+    for entry in list(dictionary.keys()):
+        dictionary[str(entry)] = dictionary[entry]
+        del dictionary[entry]
 def render_calorie_counting():
     # Performs the Calorie Counting Application, returns Calories Entered
     st.subheader("Count Calories using Weight Watcher! Snap a Pic and then Eat it!")
     st.write("Calorie Counting is performed using a Segmentation-Pretrained EfficientNetB0 to perform Multi-Task Learning on Food Classification, Weight, and Volume Estimation. The Model achieves 98 percent F1 Score and 90 percent accuracy, with 10g average error on weight.")
     st.write(f"Images should be taken with a 1 Yuan Coin in the Background, as this provides the neural network with a scale of how large the image(and food) is, so it can perform proper estimation of the weight(Otherwise, weight estimation is impossible). Models were trained in 8 hours during TOHacks 2021, on the ECUSTFD dataset. Sample Images can be found [here]({sample_images}). Feel Free to download and test them!")
     files = st.file_uploader("Count Your Calories!", type = ['png', 'jpg', 'jpeg'])
-    image = Image.open(files)
-    
+    if files is not None:
+        image = Image.open(files)
+        class_name, weight, volume, calories = calorie_counter.process_image(image)
+        weight = round(weight, 3)
+        volume = round(volume, 3)
+        calories = round(calories, 3)
+        return class_name, weight, volume, calories
     return None, None, None, None
 def line():
     st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html = True)
@@ -83,7 +99,11 @@ def format_date(year, month, day):
     date = datetime.datetime(year, month, day)
     string = date.strftime("%d %B, %Y")
     return string
-def prune(year, month, day, to_prune):
+def prune_journal(year, month, day, to_prune):
+    for last_year, last_month, last_day, last_hour, last_minute in to_prune:
+        if expired(year, month, day, last_year, last_month, last_day):
+            del to_prune[last_year, last_month, last_day, last_hour, last_minute]
+def prune_totals(year, month, day, to_prune):
     for last_year, last_month, last_day in to_prune:
         if expired(year, month, day, last_year, last_month, last_day):
             del to_prune[last_year, last_month, last_day]
@@ -91,7 +111,14 @@ def expired(year, month, day, last_year, last_month, last_day):
     last_date = datetime.date(last_year, last_month, last_day)
     cur_date = datetime.date(year, month, day)
     time_diff = cur_date - last_date
-    return time_diff.day > 7 
+    return time_diff.days > 7 
+def initialize_totals(year, month, day, entry):
+    if (year, month, day) not in entry:
+        entry[(year, month, day)] = 0
+def initialize_journals(year, month, day, hour, minute, journal):
+    if (year, month, day, hour, minute) not in journal:
+        journal[(year, month, day, hour, minute)] = []
+    
 def render_logged_in(profile):
     # Extract Current Time to Update Profiles and Graph 
     cur_date = datetime.datetime.now()
@@ -99,6 +126,7 @@ def render_logged_in(profile):
     month = cur_date.month
     day = cur_date.day
     hour = cur_date.hour
+    minute = cur_date.minute
 
     # Extract Data from Profile
     username = profile['_id']
@@ -108,19 +136,35 @@ def render_logged_in(profile):
     exercise_goal = profile['exercise_goal']
     calorie_journal = profile['calorie_journal']
     exercise_journal = profile['exercise_journal']
-    last_year, last_month, last_day, last_hour = profile['last_updated']
+    # Convert to Tuples
+    to_change = [calorie_totals, exercise_totals, calorie_journal, exercise_journal]
+    for ex in to_change:
+        convert_to_dict(ex)
+    initialize_totals(year, month, day, calorie_totals)
+    initialize_totals(year, month, day, exercise_totals)
+    initialize_journals(year, month, day, hour, minute, calorie_journal)
+    initialize_journals(year, month, day, hour, minute, exercise_journal)
+
     # Prune Entries
-    prune(year, month, day, calorie_totals)
-    prune(year, month, day, exercise_totals)
-    prune(year, month, day, calorie_journal)
-    prune(year, month, day, exercise_journal)
+    prune_totals(year, month, day, calorie_totals)
+    prune_totals(year, month, day, exercise_totals)
+    prune_journal(year, month, day, calorie_journal)
+    prune_journal(year, month, day, exercise_journal)
     # Display Data to the user
     line()
     st.header(f"Hello, {username}!")
     st.write("Here\'s your weekly summary.")
     # Calorie Counting Application:
     line()
-    calories, food_type, weight, volume = render_calorie_counting()
+    class_name, weight, volume, calories = render_calorie_counting()
+    if class_name is not None:
+        st.write(f"Predicted Food: {class_name}")
+        st.write(f"Weighs: {weight}g, Volume: {volume}cm^3, calories: {calories}kCal.")
+        add = st.button("Add Calories to Consumed?")
+        if add:
+            calorie_totals[(year, month, day)] += calories
+            calorie_journal[(year, month, day, hour, minute)] = (class_name, calories)
+            st.write("Calories Added. Graph Updated.")
     # Convert the Calorie Totals to a Line Graph
     line()
     df_to_be = {'index': [], 'values': []}
@@ -139,7 +183,7 @@ def render_logged_in(profile):
     st.subheader("This Week\'s Minutes of Exercise: ")
     # Render Exercise
     df_to_be = {'index': [], 'values': []}
-    for y, m, d in exercise_journal:
+    for y, m, d in exercise_totals:
         df_to_be['index'] += [format_date(y, m, d)]
         df_to_be['values'] += [calorie_totals[(y, m, d)]]
     df = pd.DataFrame(df_to_be)
@@ -152,7 +196,12 @@ def render_logged_in(profile):
     line()
     BMI()
     line()
-    # Render 
+    # Update MongoDB with all entries
+    # Change all dicts to strings 
+    to_change = [calorie_totals, exercise_totals, calorie_journal, exercise_journal]
+    for ex in to_change:
+        convert_to_string(ex)
+    Profile.update(username, calorie_totals = calorie_totals, exercise_totals = exercise_totals, calorie_goal = calorie_goal, exercise_goal = exercise_goal, calorie_journal = calorie_journal, exercise_journal = exercise_journal)
     return profile
 def render(state):
     # Initialize Main Bar

@@ -46,8 +46,7 @@ except ModuleNotFoundError:
     from streamlit.server.server import Server
 def main():
     state = _get_state()
-    image = PIL.Image.open(icon_path)
-    st.beta_set_page_config(page_title = "Weight Watcher", page_icon = image)
+    st.beta_set_page_config(page_title = "Weight Watcher", page_icon = ":apple:")
     
     # Render the Home Page
     cur_page = state.__getattr__('cur_page')

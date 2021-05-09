@@ -20,7 +20,7 @@ class Profile:
             return None
         return found
     @classmethod
-    def update(cls, username, calorie_totals = None, exercise_totals = None, calorie_goal = None, exercise_goal = None, calorie_journal = None, exercise_journal = None, last_updated = None):
+    def update(cls, username, calorie_totals = None, exercise_totals = None, calorie_goal = None, exercise_goal = None, calorie_journal = None, exercise_journal = None):
         query = {'_id': username}
         replace = {}
         if calorie_totals is not None:
@@ -35,16 +35,11 @@ class Profile:
             replace['calorie_journal'] = calorie_journal 
         if exercise_journal is not None:
             replace['exercise_journal'] = exercise_journal
-        if last_updated is not None:
-            replace['last_updated'] = last_updated
+        print(query)
+        print(replace)
         table.replace_one(query, replace)
     @classmethod
     def insert(cls, username, password, calorie_totals = {}, exercise_totals = {}, calorie_goal = None, exercise_goal = None, calorie_journal = {}, exercise_journal = {}):
-        cur_time = datetime.datetime.now()
-        month = cur_time.month
-        day = cur_time.day
-        year = cur_time.year
-        hour = cur_time.hour
         query = {
             '_id': username, 
             'password': password,
@@ -53,7 +48,6 @@ class Profile:
             'calorie_goal': calorie_goal,
             'exercise_goal': exercise_goal,
             'calorie_journal': calorie_journal,
-            'exercise_journal': exercise_journal,
-            'last_updated': (year, month, day, hour)
+            'exercise_journal': exercise_journal
         }
         table.insert_one(query)
