@@ -17,6 +17,8 @@ import sys
 sys.path.append('..')
 from back_end.profile import Profile
 icon_path = './assets/logo.png'
+st.set_option('deprecation.showfileUploaderEncoding', False)
+sample_images = 'https://github.com/ShaoA182739081729371028392/Weight-Watcher/tree/main/sample%20images'
 MENU = [
     'Home', # Simply a Home page, with project details
     'Login',
@@ -24,7 +26,13 @@ MENU = [
 ]
 def render_calorie_counting():
     # Performs the Calorie Counting Application, returns Calories Entered
-    pass
+    st.subheader("Count Calories using Weight Watcher! Snap a Pic and then Eat it!")
+    st.write("Calorie Counting is performed using a Segmentation-Pretrained EfficientNetB0 to perform Multi-Task Learning on Food Classification, Weight, and Volume Estimation. The Model achieves 98 percent F1 Score and 90 percent accuracy, with 10g average error on weight.")
+    st.write(f"Images should be taken with a 1 Yuan Coin in the Background, as this provides the neural network with a scale of how large the image(and food) is, so it can perform proper estimation of the weight(Otherwise, weight estimation is impossible). Models were trained in 8 hours during TOHacks 2021, on the ECUSTFD dataset. Sample Images can be found [here]({sample_images}). Feel Free to download and test them!")
+    files = st.file_uploader("Count Your Calories!", type = ['png', 'jpg', 'jpeg'])
+    image = Image.open(files)
+    
+    return None, None, None, None
 def line():
     st.markdown("""<hr style="height:10px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html = True)
     
@@ -107,6 +115,7 @@ def render_logged_in(profile):
     prune(year, month, day, calorie_journal)
     prune(year, month, day, exercise_journal)
     # Display Data to the user
+    line()
     st.header(f"Hello, {username}!")
     st.write("Here\'s your weekly summary.")
     # Calorie Counting Application:
