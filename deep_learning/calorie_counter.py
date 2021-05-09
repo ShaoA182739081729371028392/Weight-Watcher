@@ -7,7 +7,6 @@ import numpy
 import numpy as np
 import pandas as pd
 import json
-import cv2
 
 import os
 import math
@@ -913,7 +912,6 @@ def normalize(image):
     return image
 def process_image(image):
     image = np.array(image).astype(np.float32)
-    image = cv2.resize(image, (Config.IMAGE_SIZE, Config.IMAGE_SIZE))
     image = image / 255.0
 
     image = torch.tensor(normalize(image)).unsqueeze(0)

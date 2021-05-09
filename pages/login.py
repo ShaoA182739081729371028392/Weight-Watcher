@@ -90,7 +90,7 @@ def render_calorie_counting():
     st.write(f"Images should be taken with a 1 Yuan Coin in the Background, as this provides the neural network with a scale of how large the image(and food) is, so it can perform proper estimation of the weight(Otherwise, weight estimation is impossible). Models were trained in 8 hours during TOHacks 2021, on the ECUSTFD dataset. Sample Images can be found [here]({sample_images}). Feel Free to download and test them!")
     files = st.file_uploader("Count Your Calories!", type = ['png', 'jpg', 'jpeg'])
     if files is not None:
-        image = Image.open(files)
+        image = Image.open(files).resize((256, 256))
         st.image(image)
         class_name, weight, volume, calories = calorie_counter.process_image(image)
         weight = round(weight, 3)
