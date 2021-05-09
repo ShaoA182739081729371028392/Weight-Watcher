@@ -26,6 +26,17 @@ MENU = [
     'Login',
     'Learn More'
 ]
+def set_calorie_goals(calorie_goal):
+    st.subheader("Set a Calorie Goal.")
+    goal = st.text_input('', value = "Calorie Goal: ")
+    entered = st.button("Set/Create!", key ='sniasc')
+    if entered:
+        try:
+            calorie_goal = eval(goal)
+            return calorie_goal
+        except:
+            return calorie_goal
+    return calorie_goal
 def render_calorie_goals(calorie_totals, calorie_goal):
     cur_date = datetime.datetime.now()
     year = cur_date.year
@@ -38,15 +49,19 @@ def render_calorie_goals(calorie_totals, calorie_goal):
         st.write(f"You have {calories_left} calories left to consume in the day before reaching your goal!")
     else:
         st.write("Set a Goal!")
-    goal = st.text_input('', value = "Calorie Goal: ")
-    entered = st.button("Set/Create!", key ='sniasc')
+    
+def set_exercise_goals(exercise_goal):
+    st.subheader("Enter an Exercise Goal!")
+    goal = st.text_input('', value = "Exercise Goal: ")
+    entered = st.button("Set/Create!", key = 'ewefwfwef')
     if entered:
         try:
-            calorie_goal = eval(goal)
-            return calorie_goal
+            exercise_goal = eval(goal)
+            return exercise_goal
         except:
-            return calorie_goal
-    return calorie_goal
+            return exercise_goal
+    return exercise_goal
+
 def render_exercise_goals(exercise_journal, exercise_goal):
     cur_date = datetime.datetime.now()
     year = cur_date.year
@@ -55,20 +70,9 @@ def render_exercise_goals(exercise_journal, exercise_goal):
     cur_exercise = exercise_journal[(year, month, day)]
     st.subheader("Current Exercise Goals.")
     if exercise_goal:
-        exercise_to_go = cur_exercise - exercise_goal
+        exercise_to_go = exercise_goal - cur_exercise
         st.write(f'You Have {exercise_to_go} minutes left of exercise to go!')
-    else:
-        st.write("Set an Exercise Goal!")
-    goal = st.text_input('', value = "Exercise Goal: ")
-    entered = st.button("Set/Create!", key = 'ewefwfwef')
-    if entered:
-        try:
-            exercise_goal = eval(exercise_goal)
-            return exercise_goal
-        except:
-            return exercise_goal
-    return exercise_goal
-
+    
 def convert_to_dict(dictionary):
     for string in list(dictionary.keys()):
         if type(string) == type('---'):
@@ -243,7 +247,8 @@ def render_logged_in(profile):
             st.write("Calories Added. Graph Updated.")
     # Calorie Goals
     line()
-    calorie_goal = render_calorie_goals(calorie_totals, calorie_goal)
+    calorie_goal = set_calorie_goals(calorie_goal)
+    render_calorie_goals(calorie_totals, calorie_goal)
     # Calorie Journal
     line()
     render_calorie_journal(calorie_journal)
@@ -255,7 +260,10 @@ def render_logged_in(profile):
         exercise_journal[(year, month, day, hour, minute)] = (exercise_type, minutes)
     # Exercise Goals:
     line()
-    exercise_goal = render_exercise_goals(exercise_totals, exercise_goal)
+    exercise_goal = set_exercise_goals(exercise_goal)
+    print(exercise_goal)
+    render_exercise_goals(exercise_totals, exercise_goal)
+
     # Exercise Journal
     line()
     render_exercise_journal(exercise_journal)
