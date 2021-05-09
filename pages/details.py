@@ -3,6 +3,7 @@ import sys
 sys.path.append('..')
 icon_path = './assets/logo.png'
 
+source_code_link = 'https://github.com/ShaoA182739081729371028392/Weight-Watcher'
 
 MENU = [
     'Home', # Simply a Home page, with project details
@@ -20,6 +21,7 @@ def render():
         chosen = st.sidebar.button(header)
         if chosen:
             cur_page = header
+    st.sidebar.info(f"All Source Code can be found [here]({source_code_link})")
     st.title("Weight Watcher: ")
     st.header("Start living a healthier life today!")
     st.image(icon_path, width = 200)

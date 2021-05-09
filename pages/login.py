@@ -3,10 +3,9 @@ Features of the Application:
 - BMI - True
 - Goal Tracking
 - graphs - Done
-- Calorie Tracking
-- Food Journal
-- Exercise Journal 
-- Health Tips
+- Calorie Tracking - Done
+- Food Journal - Done
+- Exercise Journal  - Done
 - Login for Privacy
 '''
 import pandas as pd
@@ -18,6 +17,8 @@ sys.path.append('..')
 from back_end.profile import Profile
 from deep_learning import calorie_counter
 icon_path = './assets/logo.png'
+source_code_link = 'https://github.com/ShaoA182739081729371028392/Weight-Watcher'
+
 st.set_option('deprecation.showfileUploaderEncoding', False)
 sample_images = 'https://github.com/ShaoA182739081729371028392/Weight-Watcher/tree/main/sample%20images'
 MENU = [
@@ -25,6 +26,49 @@ MENU = [
     'Login',
     'Learn More'
 ]
+def render_calorie_goals(calorie_totals, calorie_goal):
+    cur_date = datetime.datetime.now()
+    year = cur_date.year
+    month = cur_date.month
+    day = cur_date.day
+    st.subheader("Current Calorie Goals:")
+    cur_calories = calorie_totals[(year, month, day)]
+    if calorie_goal is not None:
+        calories_left = calorie_goal - cur_calories 
+        st.write(f"You have {calories_left} calories left to consume in the day before reaching your goal!")
+    else:
+        st.write("Set a Goal!")
+    goal = st.text_input('', value = "Calorie Goal: ")
+    entered = st.button("Set/Create!", key ='sniasc')
+    if entered:
+        try:
+            calorie_goal = eval(goal)
+            return calorie_goal
+        except:
+            return calorie_goal
+    return calorie_goal
+def render_exercise_goals(exercise_journal, exercise_goal):
+    cur_date = datetime.datetime.now()
+    year = cur_date.year
+    month = cur_date.month
+    day = cur_date.day
+    cur_exercise = exercise_journal[(year, month, day)]
+    st.subheader("Current Exercise Goals.")
+    if exercise_goal:
+        exercise_to_go = cur_exercise - exercise_goal
+        st.write(f'You Have {exercise_to_go} minutes left of exercise to go!')
+    else:
+        st.write("Set an Exercise Goal!")
+    goal = st.text_input('', value = "Exercise Goal: ")
+    entered = st.button("Set/Create!", key = 'ewefwfwef')
+    if entered:
+        try:
+            exercise_goal = eval(exercise_goal)
+            return exercise_goal
+        except:
+            return exercise_goal
+    return exercise_goal
+
 def convert_to_dict(dictionary):
     for string in list(dictionary.keys()):
         if type(string) == type('---'):
@@ -43,6 +87,7 @@ def render_calorie_counting():
     files = st.file_uploader("Count Your Calories!", type = ['png', 'jpg', 'jpeg'])
     if files is not None:
         image = Image.open(files)
+        st.image(image)
         class_name, weight, volume, calories = calorie_counter.process_image(image)
         weight = round(weight, 3)
         volume = round(volume, 3)
@@ -142,7 +187,14 @@ def render_calorie_journal(journal):
         entries += [date]
     st.multiselect("", entries)
 def render_exercise_journal(journal):
-    pass
+    st.header("Weekly Exercise Journal.")
+    entries = []
+    for year, month, day, hour, minute in journal:
+        date = datetime.datetime(year, month, day, hour, minute)
+        date = date.strftime("%Y %b %d, %H: %M")
+        date = f"Time: {date}, Did: {journal[(year, month, day, hour, minute)][0]}, Minutes: {journal[(year, month, day, hour, minute)][1]}"
+        entries += [date]
+    st.multiselect("", entries)
 def render_logged_in(profile):
     # Extract Current Time to Update Profiles and Graph 
     cur_date = datetime.datetime.now()
@@ -189,6 +241,9 @@ def render_logged_in(profile):
             calorie_totals[(year, month, day)] += calories
             calorie_journal[(year, month, day, hour, minute)] = (class_name, calories)
             st.write("Calories Added. Graph Updated.")
+    # Calorie Goals
+    line()
+    calorie_goal = render_calorie_goals(calorie_totals, calorie_goal)
     # Calorie Journal
     line()
     render_calorie_journal(calorie_journal)
@@ -198,9 +253,12 @@ def render_logged_in(profile):
     if exercise_type is not None:
         exercise_totals[(year, month, day)] += minutes
         exercise_journal[(year, month, day, hour, minute)] = (exercise_type, minutes)
+    # Exercise Goals:
+    line()
+    exercise_goal = render_exercise_goals(exercise_totals, exercise_goal)
     # Exercise Journal
     line()
-
+    render_exercise_journal(exercise_journal)
     # Convert the Calorie Totals to a Line Graph
     line()
     df_to_be = {'index': [], 'values': []}
@@ -252,7 +310,7 @@ def render(state):
         chosen = st.sidebar.button(header)
         if chosen:
             cur_page = header
-    
+    st.sidebar.info(f"All Source Code can be found [here]({source_code_link})")
     profile = state.__getattr__('profile')
     if profile is None:
         new_prof = render_not_logged_in()
