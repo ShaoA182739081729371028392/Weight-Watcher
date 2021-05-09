@@ -1,26 +1,50 @@
 import pymongo
 key =  'mongodb+srv://andrew:weightwatcher@cluster0.sin8q.mongodb.net/WeightWatcher?retryWrites=true&w=majority'
 client = pymongo.MongoClient(key)
-table = client['Weight Watcher']
+cluster = client['WeightWatcher']
+table = cluster['Profiles']
+import datetime 
 class Profile:
     @classmethod
     def exists(cls, username):
         query = {'_id': username}
         found = table.find_one(query)
-        for ex in found:
-            if ex is not None:
-                return True
-        return None
+        if found is None:
+            return None
+        return True
     @classmethod
     def retrieve(cls, username, password):
         query = {'_id': username, 'password': password}
         found = table.find_one(query)
-        for ex in found:
-            if ex is not None:
-                return ex
-        return None
+        if found is None:
+            return None
+        return found
+    @classmethod
+    def update(cls, username, calorie_totals = None, exercise_totals = None, calorie_goal = None, exercise_goal = None, calorie_journal = None, exercise_journal = None, last_updated = None):
+        query = {'_id': username}
+        replace = {}
+        if calorie_totals is not None:
+            replace['calorie_totals'] = calorie_totals
+        if exercise_totals is not None:
+            replace['exercise_totals'] = exercise_totals
+        if calorie_goal is not None:
+            replace['calorie_goal'] = calorie_goal
+        if exercise_goal is not None:
+            replace['exercise_goal'] = exercise_goal
+        if calorie_journal is not None:
+            replace['calorie_journal'] = calorie_journal 
+        if exercise_journal is not None:
+            replace['exercise_journal'] = exercise_journal
+        if last_updated is not None:
+            replace['last_updated'] = last_updated
+        table.replace_one(query, replace)
     @classmethod
     def insert(cls, username, password, calorie_totals = {}, exercise_totals = {}, calorie_goal = None, exercise_goal = None, calorie_journal = {}, exercise_journal = {}):
+        cur_time = datetime.datetime.now()
+        month = cur_time.month
+        day = cur_time.day
+        year = cur_time.year
+        hour = cur_time.hour
         query = {
             '_id': username, 
             'password': password,
@@ -29,6 +53,7 @@ class Profile:
             'calorie_goal': calorie_goal,
             'exercise_goal': exercise_goal,
             'calorie_journal': calorie_journal,
-            'exercise_journal': exercise_journal
+            'exercise_journal': exercise_journal,
+            'last_updated': (year, month, day, hour)
         }
         table.insert_one(query)

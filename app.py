@@ -1,6 +1,7 @@
 # This File Handles the Logic of Basic Navigation
 import streamlit as st
 import base64
+import PIL.Image
 path_to_background = './assets/background.png'
 @st.cache(allow_output_mutation=True)
 def get_base64_of_bin_file(bin_file):
@@ -45,7 +46,8 @@ except ModuleNotFoundError:
     from streamlit.server.server import Server
 def main():
     state = _get_state()
-    st.beta_set_page_config(page_title = "Weight Watcher", page_icon = icon_path)
+    image = PIL.Image.open(icon_path)
+    st.beta_set_page_config(page_title = "Weight Watcher", page_icon = image)
     
     # Render the Home Page
     cur_page = state.__getattr__('cur_page')
