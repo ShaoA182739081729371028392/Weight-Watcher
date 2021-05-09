@@ -1,4 +1,3 @@
-base58
 pytorch-lightning
 efficientnet-pytorch
 numpy
