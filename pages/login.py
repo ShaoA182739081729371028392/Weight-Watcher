@@ -189,7 +189,7 @@ def render_calorie_journal(journal):
         date = date.strftime("%Y %b %d, %H: %M")
         date = f"Time: {date}, Ate: {journal[(year, month, day, hour, minute)][0]}, Calories: {journal[(year, month, day, hour, minute)][1]}"
         entries += [date]
-    st.multiselect("", entries)
+    st.multiselect("", entries, key = 'weifiuwfu')
 def render_exercise_journal(journal):
     st.header("Weekly Exercise Journal.")
     entries = []
@@ -198,7 +198,7 @@ def render_exercise_journal(journal):
         date = date.strftime("%Y %b %d, %H: %M")
         date = f"Time: {date}, Did: {journal[(year, month, day, hour, minute)][0]}, Minutes: {journal[(year, month, day, hour, minute)][1]}"
         entries += [date]
-    st.multiselect("", entries)
+    st.multiselect("", entries, key = 'fdsjnjkiwe')
 def render_logged_in(profile):
     # Extract Current Time to Update Profiles and Graph 
     cur_date = datetime.datetime.now()
@@ -242,6 +242,10 @@ def render_logged_in(profile):
         st.write(f"Weighs: {weight}g, Volume: {volume}cm^3, calories: {calories}kCal.")
         add = st.button("Add Calories to Consumed?")
         if add:
+            #calorie_totals[(2021, 5, 9)] = 1800
+            #calorie_totals[(2021, 5, 10)] = 2000
+            #calorie_totals[(2021, 5, 11)] =1600 
+            #calorie_totals[(2021, 5, 12)] = 2200
             calorie_totals[(year, month, day)] += calories
             calorie_journal[(year, month, day, hour, minute)] = (class_name, calories)
             st.write("Calories Added. Graph Updated.")
@@ -255,13 +259,17 @@ def render_logged_in(profile):
     # Render Exercise Input
     line()
     exercise_type, minutes = render_exercise()
+    # Sample Entries
     if exercise_type is not None:
+        #exercise_totals[(2021, 5, 9)] = 80
+        #exercise_totals[(2021, 5, 10)] = 60
+        #exercise_totals[(2021, 5, 11)] = 100
+        #exercise_totals[(2021, 5, 12)] = 80
         exercise_totals[(year, month, day)] += minutes
         exercise_journal[(year, month, day, hour, minute)] = (exercise_type, minutes)
     # Exercise Goals:
     line()
     exercise_goal = set_exercise_goals(exercise_goal)
-    print(exercise_goal)
     render_exercise_goals(exercise_totals, exercise_goal)
 
     # Exercise Journal
