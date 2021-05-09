@@ -116,9 +116,33 @@ def initialize_totals(year, month, day, entry):
     if (year, month, day) not in entry:
         entry[(year, month, day)] = 0
 def initialize_journals(year, month, day, hour, minute, journal):
-    if (year, month, day, hour, minute) not in journal:
-        journal[(year, month, day, hour, minute)] = []
-    
+    if journal is None:
+        return {}
+    return journal
+def render_exercise():
+    # Renders Exercise Input
+    st.subheader("Get outside and exercise :) Enter your exercise here.")
+    exercise_type = st.text_input("", value = 'Exercise Type')
+    minutes = st.text_input("", value = 'Minutes Exercised')
+    enter = st.button("Enter!")
+    if enter:
+        try:
+            minutes = int(minutes)
+            return exercise_type, minutes
+        except:
+            return None, None
+    return None, None
+def render_calorie_journal(journal):
+    st.header("Weekly Calorie Journal.")
+    entries = []
+    for year, month, day, hour, minute in journal:
+        date = datetime.datetime(year, month, day, hour, minute)
+        date = date.strftime("%Y %b %d, %H: %M")
+        date = f"Time: {date}, Ate: {journal[(year, month, day, hour, minute)][0]}, Calories: {journal[(year, month, day, hour, minute)][1]}"
+        entries += [date]
+    st.multiselect("", entries)
+def render_exercise_journal(journal):
+    pass
 def render_logged_in(profile):
     # Extract Current Time to Update Profiles and Graph 
     cur_date = datetime.datetime.now()
@@ -130,6 +154,7 @@ def render_logged_in(profile):
 
     # Extract Data from Profile
     username = profile['_id']
+    password = profile['password']
     calorie_totals = profile['calorie_totals']
     exercise_totals = profile['exercise_totals']
     calorie_goal = profile['calorie_goal']
@@ -142,8 +167,8 @@ def render_logged_in(profile):
         convert_to_dict(ex)
     initialize_totals(year, month, day, calorie_totals)
     initialize_totals(year, month, day, exercise_totals)
-    initialize_journals(year, month, day, hour, minute, calorie_journal)
-    initialize_journals(year, month, day, hour, minute, exercise_journal)
+    calorie_journal = initialize_journals(year, month, day, hour, minute, calorie_journal)
+    exercise_journal = initialize_journals(year, month, day, hour, minute, exercise_journal)
 
     # Prune Entries
     prune_totals(year, month, day, calorie_totals)
@@ -153,7 +178,6 @@ def render_logged_in(profile):
     # Display Data to the user
     line()
     st.header(f"Hello, {username}!")
-    st.write("Here\'s your weekly summary.")
     # Calorie Counting Application:
     line()
     class_name, weight, volume, calories = render_calorie_counting()
@@ -165,6 +189,18 @@ def render_logged_in(profile):
             calorie_totals[(year, month, day)] += calories
             calorie_journal[(year, month, day, hour, minute)] = (class_name, calories)
             st.write("Calories Added. Graph Updated.")
+    # Calorie Journal
+    line()
+    render_calorie_journal(calorie_journal)
+    # Render Exercise Input
+    line()
+    exercise_type, minutes = render_exercise()
+    if exercise_type is not None:
+        exercise_totals[(year, month, day)] += minutes
+        exercise_journal[(year, month, day, hour, minute)] = (exercise_type, minutes)
+    # Exercise Journal
+    line()
+
     # Convert the Calorie Totals to a Line Graph
     line()
     df_to_be = {'index': [], 'values': []}
@@ -179,14 +215,13 @@ def render_logged_in(profile):
         st.write("No Data Present Yet.")
     
     line()
-
     st.subheader("This Week\'s Minutes of Exercise: ")
     # Render Exercise
     df_to_be = {'index': [], 'values': []}
     for y, m, d in exercise_totals:
         df_to_be['index'] += [format_date(y, m, d)]
-        df_to_be['values'] += [calorie_totals[(y, m, d)]]
-    df = pd.DataFrame(df_to_be)
+        df_to_be['values'] += [exercise_totals[(y, m, d)]]
+    df = pd.DataFrame(df_to_be)       
     df = df.set_index('index')
 
     st.line_chart(data = df)
@@ -201,7 +236,7 @@ def render_logged_in(profile):
     to_change = [calorie_totals, exercise_totals, calorie_journal, exercise_journal]
     for ex in to_change:
         convert_to_string(ex)
-    Profile.update(username, calorie_totals = calorie_totals, exercise_totals = exercise_totals, calorie_goal = calorie_goal, exercise_goal = exercise_goal, calorie_journal = calorie_journal, exercise_journal = exercise_journal)
+    Profile.update(username, password, calorie_totals = calorie_totals, exercise_totals = exercise_totals, calorie_goal = calorie_goal, exercise_goal = exercise_goal, calorie_journal = calorie_journal, exercise_journal = exercise_journal)
     return profile
 def render(state):
     # Initialize Main Bar

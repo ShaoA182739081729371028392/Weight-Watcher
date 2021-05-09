@@ -14,29 +14,24 @@ class Profile:
         return True
     @classmethod
     def retrieve(cls, username, password):
-        query = {'_id': username, 'password': password}
+
+        query = {'_id': username}#, 'password': password}
         found = table.find_one(query)
+        print(found)
         if found is None:
             return None
         return found
     @classmethod
-    def update(cls, username, calorie_totals = None, exercise_totals = None, calorie_goal = None, exercise_goal = None, calorie_journal = None, exercise_journal = None):
-        query = {'_id': username}
+    def update(cls, username, password, calorie_totals = None, exercise_totals = None, calorie_goal = None, exercise_goal = None, calorie_journal = None, exercise_journal = None):
+        query = {'_id': username, 'password': password}
         replace = {}
-        if calorie_totals is not None:
-            replace['calorie_totals'] = calorie_totals
-        if exercise_totals is not None:
-            replace['exercise_totals'] = exercise_totals
-        if calorie_goal is not None:
-            replace['calorie_goal'] = calorie_goal
-        if exercise_goal is not None:
-            replace['exercise_goal'] = exercise_goal
-        if calorie_journal is not None:
-            replace['calorie_journal'] = calorie_journal 
-        if exercise_journal is not None:
-            replace['exercise_journal'] = exercise_journal
-        print(query)
-        print(replace)
+        replace['password'] = password
+        replace['calorie_totals'] = calorie_totals
+        replace['exercise_totals'] = exercise_totals
+        replace['calorie_goal'] = calorie_goal
+        replace['exercise_goal'] = exercise_goal
+        replace['calorie_journal'] = calorie_journal 
+        replace['exercise_journal'] = exercise_journal
         table.replace_one(query, replace)
     @classmethod
     def insert(cls, username, password, calorie_totals = {}, exercise_totals = {}, calorie_goal = None, exercise_goal = None, calorie_journal = {}, exercise_journal = {}):
